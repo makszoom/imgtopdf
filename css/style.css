@@ -170,7 +170,13 @@ body {
 
 .file-icon { font-size: 20px; }
 
-.file-name { flex: 1; font-weight: 500; }
+.file-name {
+    flex: 1;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 .file-size { color: var(--muted); font-size: 13px; }
 
