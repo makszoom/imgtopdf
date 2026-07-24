@@ -311,7 +311,7 @@ function formatSize(bytes) {
 const PAYMENT_CONFIG = {
     WORKER_URL: 'https://imgtopdf-payment.makszoom85.workers.dev',
     TRC20_ADDRESS: 'PLACEHOLDER_ADDRESS',
-    PRICE: 5
+    PRICE: 3
 };
 
 // ═══════ Paywall ═══════
