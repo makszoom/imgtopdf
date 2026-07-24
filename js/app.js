@@ -30,7 +30,9 @@ const paymentStatus = document.getElementById('paymentStatus');
 
 let images = [];
 const MAX_FREE = 5;
-const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/bmp'];
+const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/bmp', 'image/heic', 'image/heif', 'image/tiff', 'image/tif'];
+const HEIC_EXTENSIONS = /\.(heic|heif)$/i;
+const TIFF_EXTENSIONS = /\.(tiff?|tif)$/i;
 
 // ═══════ Counter Functions ═══════
 function getUsed() {
@@ -83,9 +85,10 @@ dropZone.addEventListener('drop', (e) => {
 // ═══════ File Handling ═══════
 function handleFiles(fileList) {
     const valid = Array.from(fileList).filter(f =>
-        ACCEPTED_TYPES.includes(f.type) || /\.(jpg|jpeg|png|webp|gif|bmp)$/i.test(f.name)
+        ACCEPTED_TYPES.includes(f.type) ||
+        /\.(jpg|jpeg|png|webp|gif|bmp|heic|heif|tiff|tif)$/i.test(f.name)
     );
-    if (valid.length === 0) { alert('Please select image files only (JPG, PNG, WebP, GIF, BMP).'); return; }
+    if (valid.length === 0) { alert('Please select image files only (JPG, PNG, WebP, GIF, BMP, HEIC, TIFF).'); return; }
     images = [...images, ...valid];
     renderFiles();
     convertBtn.disabled = images.length < 1;
@@ -267,6 +270,59 @@ convertBtn.addEventListener('click', async () => {
 // ═══════ Helper Functions ═══════
 function loadImage(file) {
     return new Promise((resolve, reject) => {
+        // HEIC/HEIF — decode via heic2any
+        if (HEIC_EXTENSIONS.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif') {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const blob = new Blob([e.target.result]);
+                    const converted = await heic2any({ blob, toType: 'image/jpeg', quality: 0.9 });
+                    const url = URL.createObjectURL(converted);
+                    const img = new Image();
+                    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+                    img.onerror = () => reject(new Error('Failed to decode HEIC: ' + file.name));
+                    img.src = url;
+                } catch (err) {
+                    reject(new Error('HEIC decode error: ' + file.name + ' — ' + err.message));
+                }
+            };
+            reader.onerror = () => reject(new Error('Failed to read HEIC file: ' + file.name));
+            reader.readAsArrayBuffer(file);
+            return;
+        }
+
+        // TIFF — decode via UTIF.js
+        if (TIFF_EXTENSIONS.test(file.name) || file.type === 'image/tiff' || file.type === 'image/tif') {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const ifds = UTIF.decode(e.target.result);
+                    UTIF.decodeImage(e.target.result, ifds[0]);
+                    const rgba = UTIF.toRGBA8(ifds[0]);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = ifds[0].width;
+                    canvas.height = ifds[0].height;
+                    const ctx = canvas.getContext('2d');
+                    const imageData = ctx.createImageData(canvas.width, canvas.height);
+                    for (let i = 0; i < rgba.length; i++) {
+                        imageData.data[i] = rgba[i];
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+                    const url = canvas.toDataURL('image/png');
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = () => reject(new Error('Failed to decode TIFF: ' + file.name));
+                    img.src = url;
+                } catch (err) {
+                    reject(new Error('TIFF decode error: ' + file.name + ' — ' + err.message));
+                }
+            };
+            reader.onerror = () => reject(new Error('Failed to read TIFF file: ' + file.name));
+            reader.readAsArrayBuffer(file);
+            return;
+        }
+
+        // Standard formats (JPG, PNG, WebP, GIF, BMP)
         const reader = new FileReader();
         reader.onload = (e) => {
             const img = new Image();
