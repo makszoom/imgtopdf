@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to PDF — Convert Images to PDF Online (No Upload, 100% Browser)</title>
+    <meta name="description" content="Convert images to PDF online for free. JPG, PNG, WebP to PDF. No upload to server — 100% browser-side. Fast, private, secure. Lifetime $5 for unlimited conversions.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📄%3C/text%3E%3C/svg%3E">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="canonical" href="https://imgtopdf.app/">
+    <meta property="og:url" content="https://imgtopdf.app/">
+    <meta property="og:title" content="Image to PDF — Convert Images to PDF Online (No Upload, 100% Browser)">
+    <meta property="og:description" content="Convert images to PDF online for free. No upload to server — 100% browser-side. Fast, private, secure. Lifetime $5 for unlimited conversions.">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">📄 ImgToPDF</div>
+            <div class="badge">Free • No Upload • Browser-Only</div>
+        </header>
+
+        <!-- Hero -->
+        <section class="hero">
+            <h1>Convert Images to PDF<br><span class="highlight">In Your Browser</span></h1>
+            <p class="subtitle">No upload to server. No registration. Your images never leave your device.</p>
+        </section>
+
+        <!-- Main Tool -->
+        <section class="tool">
+            <!-- Drag & Drop Zone -->
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-icon">🖼️</div>
+                <p class="drop-text">Drag & drop images here</p>
+                <p class="drop-sub">or <span class="link" id="filePicker">click to select</span></p>
+                <input type="file" id="fileInput" multiple accept=".jpg,.jpeg,.png,.webp,.gif,.bmp" hidden>
+            </div>
+
+            <!-- File List -->
+            <div class="file-list" id="fileList" style="display: none;">
+                <div class="file-list-header">
+                    <span>Files (<span id="fileCount">0</span>)</span>
+                    <button class="btn-text" id="clearAll">Clear all</button>
+                </div>
+                <div class="files" id="files"></div>
+            </div>
+
+            <!-- Options -->
+            <div class="options" id="options" style="display: none;">
+                <div class="option-group">
+                    <label class="option-label">Page size</label>
+                    <select id="pageSize">
+                        <option value="a4">A4 (210×297mm)</option>
+                        <option value="letter">Letter (216×279mm)</option>
+                        <option value="original">Original (image size)</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label class="option-label">Orientation</label>
+                    <select id="orientation">
+                        <option value="auto">Auto</option>
+                        <option value="portrait">Portrait</option>
+                        <option value="landscape">Landscape</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label class="option-label">Margin</label>
+                    <select id="margin">
+                        <option value="0">None</option>
+                        <option value="5">Small (5mm)</option>
+                        <option value="10">Large (10mm)</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label class="option-label">Quality: <span id="qualityValue">90%</span></label>
+                    <input type="range" id="quality" min="60" max="100" value="90" class="quality-slider">
+                </div>
+            </div>
+
+            <!-- Convert Button -->
+            <button class="btn-primary" id="convertBtn" disabled>
+                <span class="btn-icon">📄</span>
+                Convert to PDF
+            </button>
+
+            <!-- Progress -->
+            <div class="progress" id="progress" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">Converting...</p>
+            </div>
+
+            <!-- Counter -->
+            <div class="counter" id="counter">
+                Free conversions left: <span id="conversionsLeft">5</span>/5
+            </div>
+        </section>
+
+        <!-- Payment Modal -->
+        <div class="modal" id="paywallModal" style="display: none;">
+            <div class="modal-content payment-modal">
+                <button class="payment-close" id="paymentClose">✕</button>
+                <div class="modal-icon">🔒</div>
+                <h2>Unlock Unlimited Conversions</h2>
+                <p class="modal-desc">You've used all 5 free conversions. Pay once — use forever.</p>
+
+                <div class="pricing">
+                    <div class="price-card">
+                        <div class="price-title">Lifetime License</div>
+                        <div class="price-amount">$5</div>
+                        <div class="price-desc">Unlimited conversions forever. No subscription.</div>
+                    </div>
+                </div>
+
+                <div class="payment-network">
+                    <span class="network-badge">⚡ USDT TRC-20 (Tron)</span>
+                </div>
+
+                <div class="qr-section">
+                    <img
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=tron:PLACEHOLDER_ADDRESS%3Famount%3D5"
+                        alt="Payment QR Code"
+                        class="payment-qr"
+                        id="paymentQR"
+                    />
+                    <p class="qr-hint">Scan with TronLink, Trust Wallet, or Bybit</p>
+                </div>
+
+                <div class="address-section">
+                    <label class="payment-label">Or copy address manually:</label>
+                    <div class="address-box">
+                        <input type="text" id="paymentAddress" value="PLACEHOLDER_ADDRESS" readonly />
+                        <button class="btn-copy" id="copyBtn">Copy</button>
+                    </div>
+                </div>
+
+                <div class="txid-section">
+                    <label class="payment-label">After sending, paste your Transaction ID (TXID):</label>
+                    <div class="txid-input-group">
+                        <input type="text" id="txidInput" placeholder="Paste TXID here (64 characters)" maxlength="64" spellcheck="false" />
+                        <button class="btn-verify" id="verifyBtn">Verify</button>
+                    </div>
+                    <div id="paymentStatus" class="payment-status"></div>
+                </div>
+
+                <p class="payment-note">⏱ Wait 30-60 seconds after sending before verifying.</p>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <section class="features">
+            <h2>Why ImgToPDF?</h2>
+            <div class="feature-grid">
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <h3>100% Private</h3>
+                    <p>Images never leave your browser. No server, no upload, no data collection.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Instant</h3>
+                    <p>No waiting for upload. Conversion happens locally in milliseconds.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">💰</div>
+                    <h3>Lifetime $5</h3>
+                    <p>No monthly subscription. Pay once, use forever. Unlimited conversions.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📱</div>
+                    <h3>Works Everywhere</h3>
+                    <p>Any browser, any device. No installation needed. JPG, PNG, WebP supported.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="faq">
+            <h2>Frequently Asked</h2>
+            <div class="faq-item">
+                <h3>Is it safe to convert images here?</h3>
+                <p>Yes. Unlike iLoveIMG or Smallpdf, we don't upload your images to any server. Everything happens in your browser — your documents never leave your device.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Why only 5 free conversions?</h3>
+                <p>Running a tool costs money. 5 conversions let you try everything. If you need more — $5 lifetime unlocks unlimited conversions. No subscription, no recurring charges.</p>
+            </div>
+            <div class="faq-item">
+                <h3>How do I pay?</h3>
+                <p>We accept USDT (TRC-20) — a stable cryptocurrency. After payment, your browser is instantly unlocked. No account needed.</p>
+            </div>
+            <div class="faq-item">
+                <h3>What image formats are supported?</h3>
+                <p>JPG, JPEG, PNG, WebP, GIF, and BMP. You can convert multiple images at once — each becomes a separate page in the PDF.</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>ImgToPDF — Made for people who value privacy.</p>
+            <p class="footer-small">Not affiliated with Adobe, iLoveIMG, or Smallpdf.</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
