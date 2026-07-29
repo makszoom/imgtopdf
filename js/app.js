@@ -58,7 +58,7 @@ function updateCounter() {
     const left = Math.max(0, MAX_FREE - used);
     conversionsLeft.textContent = String(left);
     if (left === 0) {
-        counter.innerHTML = 'Free limit reached. <a href="#" id="unlockLink" style="color:#000;text-decoration:underline;">Unlock for $5</a>';
+        counter.innerHTML = 'Free limit reached. <a href="#" id="unlockLink" style="color:#000;text-decoration:underline;">Unlock for $3</a>';
         const link = document.getElementById('unlockLink');
         if (link) link.addEventListener('click', (e) => { e.preventDefault(); showPaywall(); });
     }
@@ -366,7 +366,7 @@ function formatSize(bytes) {
 // ═══════ Payment Configuration ═══════
 const PAYMENT_CONFIG = {
     WORKER_URL: 'https://imgtopdf-payment.makszoom85.workers.dev',
-    TRC20_ADDRESS: 'PLACEHOLDER_ADDRESS',
+    TRC20_ADDRESS: 'TYAC9uKyS1Lr3dy8B5BQ6j4m4d3fMNou26',
     PRICE: 3
 };
 
